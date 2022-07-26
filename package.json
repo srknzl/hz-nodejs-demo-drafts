@@ -1,0 +1,23 @@
+{
+  "name": "hz-nodejs-demo-drafts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srknzl/hz-nodejs-demo-drafts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/srknzl/hz-nodejs-demo-drafts/issues"
+  },
+  "homepage": "https://github.com/srknzl/hz-nodejs-demo-drafts#readme",
+  "dependencies": {
+    "gpxparser": "^3.0.8",
+    "hazelcast-client": "^5.1.0"
+  }
+}

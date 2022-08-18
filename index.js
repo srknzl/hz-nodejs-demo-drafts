@@ -4,7 +4,7 @@ const gpxParser = require('gpxparser');
 const { Client } = require('hazelcast-client');
 const fs = require('fs');
 const path = require('path');
-
+const express = require('express');
 
 function readGpx() {
     const gpxText = fs.readFileSync(path.join(__dirname, 'fawaz.gpx'), 'utf8'); // read the gpx file into a variable
@@ -27,8 +27,49 @@ function readGpx() {
     return points;
 }
 
+let client;
+let results;
+let shutdownTriggered = false;
+
+const app = express();
+
+app.get('/', async (req, res, next) => {
+    if (Array.isArray(results)) {
+        return res.status(500).json({
+            message: "Could not retrieve data",
+            data: []
+        });
+    }
+
+    const data = new Array(results.length);
+
+    let i = 0;
+    for await (const row of results) {
+        data[i] = {
+            lon: row.lon,
+            lat: row.lat,
+            ele: row.ele.toNumber(),
+            time: row.t.toString()
+        }
+        i++;
+    }
+    res.status(200).json({data, message: "ok"});
+});
+
+async function shutdown() {
+    shutdownTriggered = true;
+    if (client) {
+        await client.shutdown();
+    }
+    process.exit(0);
+}
+
+process.on('SIGHUP', shutdown);
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+
 async function main() {
-    const client = await Client.newHazelcastClient();
+    client = await Client.newHazelcastClient();
     const map = await client.getMap('points');
 
     await client.getSql().execute(`
@@ -54,16 +95,17 @@ async function main() {
     }
 
     // actually ORDER BY __key is the same as ORDER BY time (which is the field `t`)
-    const result = await client.getSql().execute('SELECT * FROM points ORDER BY t ASC');
+    results = await client.getSql().execute('SELECT * FROM points ORDER BY t ASC');
     
-    for await (const row of result) {
-        // print row
-        console.log(`long: ${row.lon}, lat: ${row.lat}, elevation: ${row.ele}, time: ${row.t}`);
-    }
-    await client.shutdown();
+    app.listen(3000, () => {
+        console.log('listening on port 3000');
+    });
 }
 
 main().catch(err => {
+    if (shutdownTriggered) {
+        return;
+    }
     console.error(err);
     process.exit(1);
 });

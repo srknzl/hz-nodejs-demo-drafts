@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/srknzl/hz-nodejs-demo-drafts#readme",
   "dependencies": {
+    "express": "^4.18.1",
     "gpxparser": "^3.0.8",
     "hazelcast-client": "^5.1.0"
   }

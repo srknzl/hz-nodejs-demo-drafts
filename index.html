@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Sample page</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+<body>
+    
+</body>
+<script>
+    fetch("http://localhost:3000/").then(res => {
+        return res.blob();
+    }).then(blob => {
+        return blob.text();
+    }).then(text => {
+        console.log(JSON.parse(text));
+    });
+</script>
+</html>

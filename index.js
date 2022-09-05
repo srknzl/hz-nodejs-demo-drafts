@@ -29,31 +29,33 @@ function readGpx() {
 
 let client;
 let results;
+let resultsArray;
 let shutdownTriggered = false;
 
 const app = express();
 
 app.get('/', async (req, res, next) => {
-    if (Array.isArray(results)) {
+    res.header('Access-Control-Allow-Origin', '*');
+    if (!results) {
         return res.status(500).json({
             message: "Could not retrieve data",
             data: []
         });
     }
 
-    const data = new Array(results.length);
-
-    let i = 0;
-    for await (const row of results) {
-        data[i] = {
-            lon: row.lon,
-            lat: row.lat,
-            ele: row.ele.toNumber(),
-            time: row.t.toString()
+    if (!resultsArray) {
+        resultsArray = new Array();
+        for await (const row of results) {
+            resultsArray.push({
+                lon: row.lon,
+                lat: row.lat,
+                ele: row.ele.toNumber(),
+                time: row.t.toString()
+            });
         }
-        i++;
     }
-    res.status(200).json({data, message: "ok"});
+    
+    res.status(200).json({data: resultsArray, message: "ok"});
 });
 
 async function shutdown() {
@@ -96,7 +98,7 @@ async function main() {
 
     // actually ORDER BY __key is the same as ORDER BY time (which is the field `t`)
     results = await client.getSql().execute('SELECT * FROM points ORDER BY t ASC');
-    
+    console.log(results);
     app.listen(3000, () => {
         console.log('listening on port 3000');
     });
